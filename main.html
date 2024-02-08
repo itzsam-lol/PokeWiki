@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PokeWiki</title>
+    <link rel="stylesheet" type="text/css" href="style.css">
+    <link href="https://fonts.googleapis.com/css?family=Sixtyfour" rel="stylesheet">
+</head>
+
+<body>
+    <div class="header">
+        <img src="img1.png" alt="Logo" class="logo">
+        <h1>PokeWiki</h1>
+    </div>
+    <section class="gallery">
+        <div class="pokemon-carousel" id="pokemon-carousel">
+        </div>
+    </section>
+
+    <section class="pokedesk">
+        <div>
+            <h2>PokeDesk</h2>
+        </div>
+        <div id="picpokemon"></div>
+        <div class="pokemon-details"></div>
+        <div class="refresh-button">
+            <button onclick="fetchRandomPokemon()">Random Pokemon</button>
+        </div>
+        <hr>
+    </section>
+
+    <section class="search-section">
+        <h2>Search Pokémon</h2>
+        <input type="text" id="searchInput" placeholder="Enter Pokémon name or ID">
+        <button onclick="searchPokemon()">Search</button>
+    </section>
+
+    <section class="weather-section">
+        <h2>Weather in Your Location</h2>
+        <p id="weather"></p>
+    </section>
+
+    <section class="footer">
+        <p>&copy; 2024 PokeWiki. All rights reserved.</p>
+    </section>
+
+    <script>
+        async function getWeather() {
+            const apiKey = 'b3c57a80f47e4f9f9dac99241d395012';
+            const weatherbitApiUrl = `https://api.weatherbit.io/v2.0/current?key=${apiKey}&city=Delhi`;
+            const weatherData = await fetchData(weatherbitApiUrl);
+            const weather = weatherData.data[0];
+            const weatherElement = document.getElementById('weather');
+            weatherElement.textContent = `Weather: ${weather.weather.description}, ${weather.temp}°C, ${weather.datetime}`;
+        }
+
+        async function fetchRandomPokemon() {
+            const randomId = Math.floor(Math.random() * 898) + 1;
+            const response = await fetch(`https://pokeapi.co/api/v2/pokemon/${randomId}`);
+            const data = await response.json();
+            displayPokemon(data);
+        }
+
+        function displayPokemon(data) {
+            const pokemonPic = `
+                <img src="https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/${data.id}.png" alt="${data.name}" size='100px'>
+            `;
+            document.getElementById('picpokemon').innerHTML = pokemonPic;
+            const pokemonDetails = `
+                <h2>${data.name}</h2>
+                <p>Type: ${data.types.map(type => type.type.name).join(', ')}</p>
+                <p>Height: ${data.height / 10} m</p>
+                <p>Weight: ${data.weight / 10} kg</p>
+                <p>Abilities: ${data.abilities.map(ability => ability.ability.name).join(', ')}</p>
+                <p>Base Experience: ${data.base_experience}</p>
+            `;
+            document.querySelector('.pokemon-details').innerHTML = pokemonDetails;
+        }
+
+        async function searchPokemon() {
+            const searchTerm = document.getElementById('searchInput').value.toLowerCase();
+            const response = await fetch(`https://pokeapi.co/api/v2/pokemon/${searchTerm}`);
+            if (response.ok) {
+                const data = await response.json();
+                displayPokemon(data);
+            } else {
+                alert('Pokémon not found!');
+            }
+        }
+
+        async function fetchData(url) {
+            const response = await fetch(url);
+            return response.json();
+        }
+        const pokemonImages = Array.from({ length: 200 }, (_, i) => `https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/${i + 1}.png`);
+
+        function populateGallery() {
+            const gallery = document.getElementById('pokemon-carousel');
+            pokemonImages.forEach(url => {
+                const img = document.createElement('img');
+                img.src = url;
+                img.alt = 'Pokemon';
+                gallery.appendChild(img);
+            });
+        }
+        document.addEventListener('DOMContentLoaded', populateGallery);
+        fetchRandomPokemon();
+        getWeather();
+    </script>
+</body>
+
+</html>
